@@ -1,0 +1,57 @@
+#!/bin/bash --login
+# Number of nodes needed:
+#SBATCH --nodes=1
+#
+# Wall time:
+#SBATCH --time=6:00:00
+#
+# Tasks per node:
+#SBATCH --ntasks=1
+#
+# Processors per task:
+#SBATCH --cpus-per-task=32
+#
+# Memory per node:
+#SBATCH --mem=32G
+#
+# Job name:
+#SBATCH --job-name cutadapt-dada2-miseq-250
+#
+# Mail type:
+#SBATCH --mail-type=ALL
+#
+# Standard out and error:
+#SBATCH --output=%x-%j.SLURMout
+
+echo "JobID: $SLURM_JOB_ID"
+echo "Time: `date`"
+echo "Running on node: `hostname`"
+echo "Current directory: `pwd`"
+
+# Activate conda base env
+__conda_setup="$('/hpc/group/helab/software/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/hpc/group/helab/software/anaconda3/etc/profile.d/conda.sh" ]; then
+        . "/hpc/group/helab/software/anaconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/hpc/group/helab/software/anaconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+
+# Activate cutadapt env
+conda activate cutadaptenv
+
+# Create and set working directory
+mkdir -p dada2/PE250
+cd dada2/PE250/
+
+# Load R
+module load R
+
+# Run R script
+Rscript ../../phyllosphere_cutadapt-dada2-miseq-2x250.R
+
+scontrol show job $SLURM_JOB_ID
